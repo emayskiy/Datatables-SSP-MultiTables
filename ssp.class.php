@@ -1,7 +1,7 @@
 <?php
-/* Исправленный класс SSP для выборки данных из нескольких таблиц. 
+/* Исправленный класс SSP для выборки данных из нескольких таблиц 
  *
- * Описание и последняя версия: https://github.com/emayskiy/DatatablesSSPMultiTables
+ * Описание и последняя версия: https://github.com/emayskiy/Datatables-SSP-MultiTables
  * 
  * Оригинальное описание: 
  * Helper functions for building a DataTables server-side processing SQL query
@@ -18,13 +18,13 @@
  * @license MIT - http://datatables.net/license_mit
  */
 
-
+/*
 // REMOVE THIS BLOCK - used for DataTables test environment only!
 $file = $_SERVER['DOCUMENT_ROOT'].'/datatables/pdo.php';
 if ( is_file( $file ) ) {
     include( $file );
 }
-
+*/
 
 class SSP {
     /**
