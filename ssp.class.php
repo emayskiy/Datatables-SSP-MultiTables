@@ -1,9 +1,12 @@
 <?php
-/* Исправленный класс SSP для выборки данных из нескольких таблиц 
- *
- * Описание и последняя версия: https://github.com/emayskiy/Datatables-SSP-MultiTables
+/* RU: Исправленный класс Datatables SSP для выборки данных из нескольких таблиц с возможностью группировки 
+ *      Описание и последняя версия: https://github.com/emayskiy/Datatables-SSP-MultiTables
  * 
- * Оригинальное описание: 
+ * EN: Fixed Datatables SSP class for selecting data from multiple tables with grouping data
+ *      Example and last version: https://github.com/emayskiy/Datatables-SSP-MultiTables
+ * 
+ * Original Datatables SSP Descriptions: 
+ * 
  * Helper functions for building a DataTables server-side processing SQL query
  *
  * The static functions in this class are just helper functions to help build
@@ -58,8 +61,7 @@ class SSP {
         
         return $out;
     }
-    
-    
+        
     /**
      * Database connection
      *
@@ -145,8 +147,7 @@ class SSP {
         
         return $order;
     }
-    
-    
+        
     /**
      * Searching / Filtering
      *
@@ -220,10 +221,18 @@ class SSP {
         return $where;
     }
     
-    //Получим описание таблиц по переданному массиву
+    /**
+     * emayskiy:
+     *  Получим описание таблиц по переданному массиву
+     * 
+     *  Prepare a description of the array of tables     
+     * 
+     *  @param  array $in_table - string or array of strings
+     * 
+     */    
     static function table($in_table)
     {
-        if (!is_array($in_table)){
+        if (is_string($in_table)){
             return "`$in_table`";
         }
         $dtables = array();
@@ -248,17 +257,38 @@ class SSP {
         
         return "";
     }
-    
-    //Подготовим поле для запроса
-    function get_field($field){
+           
+    /**
+     * emayskiy:
+     *  Подготовим поле для запроса
+     * 
+     *  Perform field for query
+     * 
+     *  @param  string  $field - table field 
+     *  @param  string  $field_params - field params
+     * 
+     */   
+    function get_field($field, $field_params=null){
         $parts = explode("." , $field);
         for ( $i=0, $len=count($parts) ; $i<$len ; $i++ ) {
             $parts[$i] = "`$parts[$i]`";
         }
-        return implode(".", $parts);
+        $fval = implode(".", $parts);
+        if ($field_params && $field_params['group_func']){
+            $fval = $field_params['group_func']."(".$fval.")";
+        }
+        return $fval;
     }
     
-    //Получим имя колонки для обработки результата
+    /**
+     * emayskiy:
+     *  Получим имя колонки для обработки результата
+     * 
+     *  Get the column name for processing the result.
+     * 
+     *  @param  string  $column - table column description     
+     * 
+     */
     function get_column_name($column){
         if ($column['as']){
             return $column['as'];
@@ -294,7 +324,7 @@ class SSP {
         $order = self::order( $request, $columns );
         $where = self::filter( $request, $columns, $bindings );
         
-        //В качестве таблицы может быть передан массив
+        //emayskiy: p_table may be array
         $table = self::table($p_table);
         $primaryKey = self::get_field($primaryKey);
         
@@ -358,19 +388,17 @@ class SSP {
      *  @param  string $whereResult WHERE condition to apply to the result set
      *  @param  string $whereAll WHERE condition to apply to all queries
      *  @return array          Server-side processing response array
-     */
+     */    
     static function complex ( $request, $conn, $p_table, $primaryKey, $columns, $whereResult=null, $whereAll=null, $groupBy=null, $having=null)
     {
         $bindings = array();
         $db = self::db( $conn );
-        $localWhereResult = array();
-        $localWhereAll = array();
         $whereAllSql = '';
-        
-        //Получим представление ключа для запроса
+                
+        //emayskiy: Get field for query
         $primaryKey = self::get_field($primaryKey);
-        
-        //В качестве таблицы может быть передан массив
+                
+        //emayskiy: p_table may be array
         $table = self::table($p_table);
         
         // Build the SQL query string from the request
@@ -395,6 +423,7 @@ class SSP {
             $whereAllSql = 'WHERE '.$whereAll;
         }
         
+        //emayskiy: Add group and having
         $groupBy = ($groupBy) ? ' GROUP BY '.$groupBy .' ' : '';
         $having = ($having) ? ' HAVING '.$having .' ' : '';
         
@@ -489,8 +518,7 @@ class SSP {
         }
         
         $stmt = $db->prepare( $sql );
-        //echo $sql;
-        
+               
         // Bind parameters
         if ( is_array( $bindings ) ) {
             for ( $i=0, $ien=count($bindings) ; $i<$ien ; $i++ ) {
@@ -569,13 +597,12 @@ class SSP {
     {
         $out = array();
         for ( $i=0, $len=count($a) ; $i<$len ; $i++ ) {
-            $out[] = (($prop=='db')? self::get_field($a[$i][$prop]).(($a[$i]['as']) ? " AS `".$a[$i]['as']."`" : ""):$a[$i][$prop]);
+            $out[] = (($prop=='db')? self::get_field($a[$i][$prop], $a[$i]).(($a[$i]['as']) ? " AS `".$a[$i]['as']."`" : ""):$a[$i][$prop]);
         }
         
         return $out;
     }
-    
-    
+
     /**
      * Return a string from an array or a string
      *
